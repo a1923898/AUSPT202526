@@ -28,18 +28,18 @@ room_surf_num = 6;                         % the shoebox room has 6 surfaces (fl
 % target_signal = target_signal./max(abs(target_signal));
 % 
 target_positions = [2.45 3.45 1.5];
-target_angles = [90 0];                     % azimuth = 90 degree, elevation = 0 degree
-soundsc(target_signal(1:num_play_samples),fs)
+% target_angles = [90 0];                     % azimuth = 90 degree, elevation = 0 degree
+% soundsc(target_signal(1:num_play_samples),fs)
 %
 % Female Voice (Interference)
-interf_file = [pwd '\musan\speech\librivox\speech-librivox-0100.wav'];   % a female speech in MUSAN
+%interf_file = [pwd '\musan\speech\librivox\speech-librivox-0100.wav'];   % a female speech in MUSAN
 
-interf_signal = audioread(interf_file);
-interf_signal = interf_signal./max(abs(interf_signal));
+%interf_signal = audioread(interf_file);
+%interf_signal = interf_signal./max(abs(interf_signal));
 
 interf_positions = [3.22 3.06 1.5];
 interf_angles = [40 0];                     % azimuth = 40 degree, elevation = 0 degree
-soundsc(interf_signal(1:num_play_samples),fs);
+% soundsc(interf_signal(1:num_play_samples),fs)
 
 
 
@@ -71,6 +71,5 @@ ylabel("Amplitude");
 title("Impulse Response – Mic 2 [2.49 2.45 1.5]");
 grid on;
 
-%% plotting room
-h = figure;
-plotRoom(room_dim,mic_positions,[target_positions;interf_positions],h)
+%%
+
