@@ -43,6 +43,7 @@ interf_signal = interf_signal(1:num_play_samples); %cut length to same as target
 interf_signal = interf_signal / max(abs(interf_signal));
 
 interf_position = [3.22 3.06 1.5];
+source_positions = [target_positions ; interf_position];
 %interf_angles = [40 0];                     % azimuth = 40 degree, elevation = 0 degree
 pause(10);
 soundsc(interf_signal(1:num_play_samples),fs);
@@ -107,9 +108,9 @@ title("Interference Impulse Response – Mic 2 [2.49 2.45 1.5]");
 grid on;
 
 
-%% plotting room i have no idea why this wont work????
-%h = figure;
-%plotRoom(room_dim,mic_positions,target_positions,h);
+
+h = figure;
+plotRoom(room_dim,mic_positions,source_positions,h);
 
 
 mic_signals = zeros(num_mics, num_play_samples + num_ir_samples - 1);
