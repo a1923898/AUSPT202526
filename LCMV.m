@@ -1,0 +1,122 @@
+% LCMV
+% this version detects spatial aliasing frequencies (where target ~ interference)
+% with fall-back to delay-and-sum to prevent aliasing
+
+clear; clc; close all;
+
+% Load Simulation Data
+filename = 'output_mixture.wav';
+if ~isfile(filename)
+    error('File output_mixture.wav not found. Run the simulation script first.');
+end
+[x, fs] = audioread(filename);
+
+% array geometry & angles
+d = 0.08;           % mic spacing (m)
+c = 340;            % speed of sound (m/s)
+
+theta_target = 90;  % target direction
+theta_interf = 40;  % known interference direction
+
+mic_locs = [-d/2, d/2]; 
+
+% stft setup
+win_len = 512;
+overlap = 256;
+fft_len = 512;
+
+[S, f, t_stft] = stft(x, fs, 'Window', hamming(win_len), 'OverlapLength', overlap, 'FFTLength', fft_len);
+[num_bins, num_frames, num_mics] = size(S);
+
+Y_lcmv_stft = zeros(num_bins, num_frames);
+
+% calculate the spatial correlation threshold
+% if correlation > 0.99, the vectors are too similar (aliasing or low freq)
+similarity_threshold = 0.99; 
+
+% frequency domain processing loop
+for k = 1:num_bins
+    freq = f(k);
+    k_wave = 2*pi*freq/c;
+    
+    % create steering vectors
+    v_target = exp(1j * k_wave * mic_locs' * cosd(theta_target));
+    v_interf = exp(1j * k_wave * mic_locs' * cosd(theta_interf));
+    
+    % calculate correlation between target and interference vectors
+    % formula: |v_t' * v_i| / (norm(v_t)*norm(v_i))
+    % if this is close to 1, the array cannot tell them apart.
+    correlation = abs(v_target' * v_interf) / (norm(v_target) * norm(v_interf));
+    
+    is_singular = correlation > similarity_threshold;
+    
+    % compute weights 
+    if is_singular
+        % Fallback: Delay-and-Sum (Safe, no nulling, but no artifacts)
+        % w = v_target / M
+        w = v_target / num_mics; 
+    else
+        % standard adaptive processing
+        X_k = squeeze(S(k, :, :)).'; 
+        R = (X_k * X_k') / num_frames;
+        % stronger diagonal Loading for stability
+        R = R + 0.01 * trace(R) * eye(num_mics); 
+        %R_inv = inv(R);
+        
+        % LCMV Calculation
+        C = [v_target, v_interf]; 
+        g = [1; 0];              
+        
+        gram_matrix = C' * R/C;
+        
+        % Secondary numerical check
+        if rcond(gram_matrix) < 1e-5
+            w = v_target / num_mics; % Fallback
+        else
+            lambda = gram_matrix \ g; 
+            w = R/C * lambda;
+        end
+    end
+    
+    % white noise gain constraint
+    % even if not singular, sometimes weights are large, so clamp
+    max_weight_norm = 10; 
+    if norm(w) > max_weight_norm
+        w = w / norm(w) * max_weight_norm;
+    end
+    
+    % apply weights
+    x_k_curr = squeeze(S(k, :, :)).';
+    y_lcmv_stft(k, :) = w' * x_k_curr;
+end
+
+% inverse stft & output
+y_lcmv = istft(y_lcmv_stft, fs, 'window', hamming(win_len), 'overlaplength', overlap, 'fftlength', fft_len);
+
+% length matching
+len = min(length(x), length(y_lcmv));
+y_lcmv = y_lcmv(1:len);
+x_ref = x(1:len, 1);
+
+% normalize
+y_lcmv = y_lcmv / max(abs(y_lcmv)) * 0.9;
+
+% visualization
+t_vec = (0:len-1)/fs;
+
+figure('name', 'final corrected lcmv');
+subplot(2,1,1);
+plot(t_vec, x_ref); title('mic 1 input'); grid on; ylim([-1 1]);
+subplot(2,1,2);
+plot(t_vec, y_lcmv); title('lcmv output (artifacts removed)'); grid on; ylim([-1 1]);
+
+figure('name', 'spectrogram check');
+spectrogram(y_lcmv, 256, 128, 256, fs, 'yaxis');
+title('spectrogram (check for lines at 5.5k and 10.5k)');
+
+% remove imaginary part
+
+y_lcmv = real(y_lcmv);
+
+% save
+audiowrite('result_LCMV.wav', y_lcmv, fs);
