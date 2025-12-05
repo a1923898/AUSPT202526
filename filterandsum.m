@@ -89,7 +89,7 @@ x_ref = x(1:n, 1);
 figure('name', 'robust sub-band results');
 subplot(2,1,1);
 spectrogram(x_ref, 256, 128, 256, fs, 'yaxis');
-title('mic 1 raw input');
+title('original');
 
 subplot(2,1,2);
 spectrogram(y_out, 256, 128, 256, fs, 'yaxis');

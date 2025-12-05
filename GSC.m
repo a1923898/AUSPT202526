@@ -42,7 +42,7 @@ for k = 1:num_bins
     steering_vec = exp(1j * k_wave * mic_locs' * cosd(theta_target));
     
     % apply phase shift to align signals
-    X_k = squeeze(S(k, :, :)).'; % (Mics x Time)
+    X_k = squeeze(s(k, :, :)).'; % (Mics x Time)
     X_aligned = X_k ./ steering_vec; % Element-wise division removes delay
     
     % the upper rail (fixed beamformer)
@@ -102,3 +102,4 @@ spectrogram(y_gsc, 256, 128, 256, fs, 'yaxis');
 title('GSC Spectrogram');
 
 audiowrite('result_GSC.wav', y_gsc, fs);
+fprintf('Audio saved to "result_GSC.wav"\n');
