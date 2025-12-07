@@ -1,0 +1,11 @@
+Evaluation Date: 07-Dec-2025 20:16:29
+File Processed: result_WIENER_GSC.wav
+
+Metrics:
+STOI:  0.8033 (0-1)
+PESQ narrowband:  2.1052 (1-5)
+PESQ wideband:  1.5477 (1-5)
+ViSQOL:  2.7985 (1-5)
+OSINR: 12.57 dB (Higher is better)
+LSD:   12.83 dB (Lower is better)
+ 
