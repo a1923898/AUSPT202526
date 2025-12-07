@@ -1,6 +1,6 @@
 % decision-directed wiener filter to remove residual white gaussian noise 
 % load beamformed audio
-input_file = 'result_GSC.wav'; 
+input_file = 'result_GSC_zoom_0.wav'; 
 
 if ~isfile(input_file)
     error('file %s not found. please run simulation2.m then gsc.m first .', input_file);
