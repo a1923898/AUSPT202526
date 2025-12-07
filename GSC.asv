@@ -6,7 +6,7 @@
 %   -adaptive canceller: subtracts lower rail from upper rail.
 
 % load data
-filename = 'output_mixture.wav';
+filename = 'clean_mix.wav';
 if ~isfile(filename)
     error('file output_mixture.wav not found. run simulation2.m first.');
 end
@@ -42,37 +42,37 @@ for k = 1:num_bins
     steering_vec = exp(1j * k_wave * mic_locs' * cosd(theta_target));
     
     % apply phase shift to align signals
-    X_k = squeeze(S(k, :, :)).'; % (Mics x Time)
+    X_k = squeeze(s(k, :, :)).'; % (Mics x Time)
     X_aligned = X_k ./ steering_vec; % Element-wise division removes delay
     
-    % --- step b: the upper rail (fixed beamformer) ---
+    % the upper rail (fixed beamformer)
     % since signals are aligned, a simple average preserves the target.
-    d_upper = mean(X_aligned, 1); % (1 x Time) - "Desired Signal + Noise"
+    d_upper = mean(X_aligned, 1); % (1 x Time) - "desired signal + noise"
     
-    % --- Step C: The Lower Rail (Blocking Matrix) ---
-    % We need to BLOCK the target. Since target signals are identical in X_aligned,
-    % subtracting them (Mic 1 - Mic 2) cancels the target perfectly.
-    % In GSC terms, Blocking Matrix B = [1; -1].
+    % the lower rail (blocking matrix)
+    % we need to block the target. since target signals are identical in x_aligned,
+    % subtracting them (mic 1 - mic 2) cancels the target perfectly.
+    % in gsc terms, blocking matrix b = [1; -1].
     
-    % This contains ONLY Interference + Noise (Target is gone)
+    % this contains only interference + noise (Target is gone)
     u_lower = X_aligned(1,:) - X_aligned(2,:); 
     
-    % --- Step D: Adaptive Cancellation (Unconstrained) ---
-    % We want to find a weight 'w' such that: Output = d_upper - w * u_lower
-    % is minimized. This is a standard Wiener Filter problem.
-    % w = E[u * d'] / E[u * u']  (Cross-variance / Auto-variance)
+    % adaptive cancellation (unconstrained)
+    % we want to find a weight 'w' such that: output = d_upper - w * u_lower
+    % is minimized.
+    % w = e[u * d'] / e[u * u']  (cross-variance / auto-variance)
     
-    % Calculate Statistics (averaging over time frames)
-    R_du = (u_lower * d_upper') / num_frames; % Cross-correlation
-    R_uu = (u_lower * u_lower') / num_frames; % Auto-correlation
+    % calculate statistics (averaging over time frames)
+    R_du = (u_lower * d_upper') / num_frames; % cross-correlation
+    R_uu = (u_lower * u_lower') / num_frames; % auto-correlation
     
-    % Robustness: Add tiny noise to denominator to avoid Divide-by-Zero
+    % robustness: add tiny noise to denominator to avoid divide-by-zero
     R_uu = R_uu + 1e-6 * mean(abs(u_lower).^2); 
     
-    % Calculate scalar weight (No matrix inversion needed!)
+    % calculate scalar weight
     w_adapt = R_du / R_uu; 
     
-    % --- Step E: Final Subtraction ---
+    % step e: final subtraction
     Y_gsc_stft(k, :) = d_upper - (w_adapt' * u_lower);
 end
 
@@ -96,9 +96,10 @@ plot(t_vec, x_ref); title('Original 2 Mic input'); grid on; ylim([-1 1]);
 subplot(3,1,2);
 plot(t_vec, y_gsc); title('GSC Output'); grid on; ylim([-1 1]);
 
-% Spectrogram
+% spectrogram
 subplot(3,1,3);
 spectrogram(y_gsc, 256, 128, 256, fs, 'yaxis');
 title('GSC Spectrogram');
 
 audiowrite('result_GSC.wav', y_gsc, fs);
+fprintf('Audio saved to "result_GSC.wav"\n');

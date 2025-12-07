@@ -1,0 +1,11 @@
+Evaluation Date: 07-Dec-2025 20:58:21
+File Processed: result_GSC_clean.wav
+
+Metrics:
+STOI:  0.9718 (0-1)
+PESQ narrowband:  3.3802 (1-4.5)
+PESQ wideband:  2.7837 (1-4.5)
+ViSQOL:  4.1079 (1-5)
+OSINR: 24.07 dB (Higher is better)
+LSD:   4.54 dB (Lower is better)
+ 
