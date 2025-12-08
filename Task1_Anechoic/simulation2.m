@@ -19,8 +19,8 @@ src_target_pos = [2.45; 3.45; 1.5];
 src_interf_pos = [3.22; 3.06; 1.5];
 
 % load and pre-process audio sources
-file_target = '1272-141231-0012.flac';
-file_interf = 'Prime_Minister_Gillard_of_Australia_at_News_Conference_with_President_Obama.flac';
+file_target = 'target_signal.flac';
+file_interf = 'interference_signal1.flac';
 
 % check if files exist
 if ~isfile(file_target) || ~isfile(file_interf)
