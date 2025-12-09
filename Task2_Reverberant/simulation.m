@@ -2,14 +2,14 @@
 % simulates reverberation by calculating reflections explicitly
 % without using the audio toolbox 'acousticRoomResponse' function for
 % paedagogical purposes
-
+clc; clear all; 
 % simulation parameters
 c = 340;                    % speed of sound (m/s)
 fs = 16000;                 % sampling rate (hz)
 room_dim = [4.9, 4.9, 4.9]; % room dimensions [lx, ly, lz]
 target_rt60 = 0.5;          % desired reverberation time
 
-% calculate wall absorption (alpha) using sabine's formula
+% calculate wall absorption (alpha) using sabiBeamformer (Broadband LCMV)ne's formula
 v = prod(room_dim);
 s = 2 * (room_dim(1)*room_dim(2) + room_dim(1)*room_dim(3) + room_dim(2)*room_dim(3));
 alpha = (0.161 * v) / (s * target_rt60);
@@ -184,12 +184,19 @@ audiowrite('mixture_signal_40_snr.wav', snr40_final, fs);
 audiowrite('mixture_signal_60_snr.wav', snr60_final, fs);
 % save result without wgn for comparison
 audiowrite('clean_mix.wav', clean_mix_final, fs);
-
+% play mixture
+fprintf('Playing mixture')
+player1 = audioplayer(mixture_signal, fs);
+playblocking(player1);
 fprintf('saved audio as mixture_signal.wav, mixture_signal_10_snr.wav, mixture_signal_20_snr.wav, mixture_signal_40_snr.wav, mixture_signal_60_snr.wav, clean_mix.wav\n');
 
 % Beamform
 filtered_signal_GSC = GSC(mixture_signal, fs);
 audiowrite('GSC_filtered.wav', filtered_signal_GSC, fs);
+% play beamformed signal
+fprintf('Signal after GSC beamforming')
+player2 = audioplayer(filtered_signal_GSC, fs);
+playblocking(player2);
 % Frost Beamformer (Broadband LCMV)
 mic_pos_toolbox = mic_pos; 
 
@@ -214,7 +221,10 @@ fprintf('audio saved to result_FROST.wav\n');
 
 % Reduce WG noise with Wiener filter
 processed_signal = wiener(filtered_signal_GSC, fs);
-
+% play denoised signal
+fprintf('Playing final processed signal after Wiener decision-directed filter')
+player3 = audioplayer(processed_signal, fs);
+playblocking(player3);
 % Save final result
 audiowrite('processed_signal.wav', processed_signal, fs);
 fprintf('final audio saved to processed_signal.wav\n');

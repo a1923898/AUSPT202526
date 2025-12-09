@@ -138,12 +138,16 @@ else
     snr60_final = snr60;
 end
 
+% play mixture
+fprintf('Playing mixture')
+player1 = audioplayer(mixture_signal, fs);
+playblocking(player1);
 % output and visualization
 t = (0:N-1)/fs;
 
 figure('Name', 'Simulation Results (Mic 1)');
 subplot(3,1,1);
-plot(t, final_mixture(:,1));
+plot(t, mixture_signal(:,1));
 title('Mic 1: Final Mixture (Target + Interference + Noise)');
 xlabel('Time (s)'); grid on;
 
@@ -160,7 +164,7 @@ ylim([-6 6]);
 xlim([0.1 0.2]);
 figure('Name', 'Simulation Results (Mic 2)');
 subplot(3,1,1);
-plot(t, final_mixture(:,2));
+plot(t, mixture_signal(:,2));
 title('Mic 2: Final Mixture (Target + Interference + Noise)');
 xlabel('Time (s)'); grid on;
 
@@ -178,9 +182,9 @@ xlim([0.1 0.2]);
 
 figure('Name', 'Simulation Results (Both Mics)');
 colororder("reef");
-plot(t, final_mixture(:,1));
+plot(t, mixture_signal(:,1));
 hold on;
-plot(t, final_mixture(:,2));
+plot(t, mixture_signal(:,2));
 title('Final Mixture (Target + Interference + Noise)');
 legend('Mic 1', 'Mic 2');
 xlabel('Time (s)'); grid on;
@@ -205,9 +209,18 @@ fprintf('Target SNR (should be ~5 dB): %.2f dB\n', actual_SNR);
 filtered_signal_GSC = GSC(mixture_signal, fs);
 audiowrite('GSC_filtered.wav', filtered_signal_GSC, fs);
 
+% play beamformed signal
+fprintf('Signal after GSC beamforming')
+player2 = audioplayer(filtered_signal_GSC, fs);
+playblocking(player2);
+
 % Reduce WG noise with Wiener filter
 processed_signal = wiener(filtered_signal_GSC, fs);
 
+% play denoised signal
+fprintf('Playing final processed signal after Wiener decision-directed filter')
+player3 = audioplayer(processed_signal, fs);
+playblocking(player3);
 % Save final result
 audiowrite('processed_signal.wav', processed_signal, fs);
 fprintf('final audio saved to processed_signal.wav\n');

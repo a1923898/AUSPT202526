@@ -1,0 +1,9 @@
+Evaluation Date: 09-Dec-2025 14:24:10
+Metrics:
+STOI:  0.3514 (0-1)
+PESQ narrowband:  1.2978 (1-4.5)
+PESQ wideband:  1.0802 (1-4.5)
+ViSQOL:  2.1865 (1-5)
+OSINR: 1.54 dB (Higher is better)
+LSD:   16.17 dB (Lower is better)
+ 
