@@ -99,8 +99,10 @@ function metrics = evaluationMetrics(sig_proc, fs_p)
     fprintf('EVALUATION RESULTS\n');
     fprintf('=================================================\n');
     fprintf('1. STOI (Intelligibility):  %.4f  (Range: 0-1)\n', results.STOI);
-    fprintf('2. PESQ narrowband (Quality):      %.4f  (Range: 1-4.5)\n', results.PESQ(1));
-    fprintf('2. PESQ wideband (Quality):      %.4f  (Range: 1-4.5)\n', results.PESQ(2));
+    if exist('pesq_mex', 'file')
+        fprintf('2. PESQ narrowband (Quality):      %.4f  (Range: 1-4.5)\n', results.PESQ(1));
+        fprintf('2. PESQ wideband (Quality):      %.4f  (Range: 1-4.5)\n', results.PESQ(2));
+    end
     fprintf('3. ViSQOL (Quality):      %.4f  (Range: 1-5)\n', results.VISQOL);
     fprintf('4. OSINR (Accuracy):   %.2f dB (Higher is better)\n', results.OSINR);
     fprintf('5. Timbre Distortion (LSD): %.2f dB (Lower is better)\n', results.LSD);
@@ -111,8 +113,10 @@ function metrics = evaluationMetrics(sig_proc, fs_p)
     fprintf(fid, 'Evaluation Date: %s\n', datestr(now));
     fprintf(fid, 'Metrics:\n');
     fprintf(fid, 'STOI:  %.4f (0-1)\n', results.STOI);
-    fprintf(fid, 'PESQ narrowband:  %.4f (1-4.5)\n', results.PESQ(1));
-    fprintf(fid, 'PESQ wideband:  %.4f (1-4.5)\n', results.PESQ(2));
+    if exist('pesq_mex', 'file')
+        fprintf(fid, 'PESQ narrowband:  %.4f (1-4.5)\n', results.PESQ(1));
+        fprintf(fid, 'PESQ wideband:  %.4f (1-4.5)\n', results.PESQ(2));
+    end
     fprintf(fid, 'ViSQOL:  %.4f (1-5)\n', results.VISQOL);
     fprintf(fid, 'OSINR: %.2f dB (Higher is better)\n', results.OSINR);
     fprintf(fid, 'LSD:   %.2f dB (Lower is better)\n ', results.LSD);
