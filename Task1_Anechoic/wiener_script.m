@@ -57,6 +57,7 @@ for n = 1:num_frames
            
     % compute wiener gain
     % G = xi / (xi + 1)
+    
     G = SNR_prio ./ (SNR_prio + 1);
     
     % apply gain floor (prevent dead silence/artifacts)

@@ -222,7 +222,7 @@ fprintf('audio saved to result_FROST.wav\n');
 % Reduce WG noise with Wiener filter
 processed_signal = wiener(filtered_signal_GSC, fs);
 % play denoised signal
-fprintf('Playing final processed signal after Wiener decision-directed filter')
+fprintf('Playing final processed signal after Wiener decision-directed filter\n')
 player3 = audioplayer(processed_signal, fs);
 playblocking(player3);
 % Save final result
@@ -231,7 +231,33 @@ fprintf('final audio saved to processed_signal.wav\n');
 
 % Run evaluation metrics
 evaluationMetrics(processed_signal, fs);
-fprintf('Try reducing the variable snr for the White Gaussian Noise SNR dB to see if there are improvements to the metrics')
+
+% play 40db SNR
+fprintf('\nPlaying mixture with 40dB SNR\n')
+player1 = audioplayer(snr40_final, fs);
+playblocking(player1);
+
+% Beamform the one with 40dB SNR
+filtered_signal_40dB = GSC(snr40_final, fs);
+
+% play beamformed signal with 40 SNR
+fprintf('\n40 dB Signal after GSC beamforming\n')
+player2 = audioplayer(filtered_signal_40dB, fs);
+playblocking(player2);
+
+% Reduce WG noise of 40db SNR with Wiener filter
+processed_signal_40db = wiener(filtered_signal_40dB, fs);
+
+% play denoised signal from 40dB mix
+fprintf('\nPlaying final processed signal after Wiener decision-directed filter on 40dB SNR mix\n')
+player3 = audioplayer(processed_signal_40db, fs);
+playblocking(player3);
+
+fprintf('\nEvaluation metrics for the signal with 40db SNR\n')
+
+% Run evaluation metrics
+evaluationMetrics(processed_signal_40db, fs);
+
 
 % function to calculate echoic room impulse response
 function rir = roomImpulseResponse(src_pos, mic_pos, room_dim, beta, c, fs, order)

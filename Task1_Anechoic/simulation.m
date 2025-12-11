@@ -8,7 +8,7 @@ room_dim = [4.9, 4.9, 4.9]; % room dimensions (meters)
 % mic 1: (2.41, 2.45, 1.5)
 % mic 2: (2.49, 2.45, 1.5)
 mic_pos = [2.41, 2.45, 1.5; ...
-           2.49, 2.45, 1.5]'; % 3x2 Matrix (x,y,z per column)
+    2.49, 2.45, 1.5]'; % 3x2 Matrix (x,y,z per column)
 
 % source 1: target (male Speech) - azimuth 90 deg (front)
 % position: (2.45, 3.45, 1.5)
@@ -67,7 +67,7 @@ P_target = mean(rms(target_at_mics).^2); % Average power across mics
 P_interf = mean(rms(interf_at_mics).^2);
 
 % calculate scaling factor for SIR = 0 dB
-desired_SIR_dB = 0; 
+desired_SIR_dB = 0;
 gain_interf = sqrt(P_target / P_interf * 10^(-desired_SIR_dB/10));
 
 % apply scaling
@@ -93,7 +93,7 @@ noise = raw_mixture - clean_mix;
 max_val = max(abs(raw_mixture(:)));
 if max_val > 0.95
     scaling_factor = 0.95 / max_val;
-    mixture_signal = raw_mixture * scaling_factor;  
+    mixture_signal = raw_mixture * scaling_factor;
 else
     mixture_signal = raw_mixture;
 end
@@ -101,7 +101,7 @@ end
 max_val = max(abs(clean_mix(:)));
 if max_val > 0.95
     scaling_factor = 0.95 / max_val;
-    clean_mix_final = clean_mix * scaling_factor;  
+    clean_mix_final = clean_mix * scaling_factor;
 else
     clean_mix_final = clean_mix;
 end
@@ -109,7 +109,7 @@ end
 max_val = max(abs(snr10(:)));
 if max_val > 0.95
     scaling_factor = 0.95 / max_val;
-    snr10_final = snr10 * scaling_factor;  
+    snr10_final = snr10 * scaling_factor;
 else
     snr10_final = snr10;
 end
@@ -117,7 +117,7 @@ end
 max_val = max(abs(snr20(:)));
 if max_val > 0.95
     scaling_factor = 0.95 / max_val;
-    snr20_final = snr20 * scaling_factor;  
+    snr20_final = snr20 * scaling_factor;
 else
     snr20_final = snr20;
 end
@@ -125,7 +125,7 @@ end
 max_val = max(abs(snr40(:)));
 if max_val > 0.95
     scaling_factor = 0.95 / max_val;
-    snr40_final = snr40 * scaling_factor;  
+    snr40_final = snr40 * scaling_factor;
 else
     snr40_final = snr40;
 end
@@ -133,7 +133,7 @@ end
 max_val = max(abs(snr60(:)));
 if max_val > 0.95
     scaling_factor = 0.95 / max_val;
-    snr60_final = snr60 * scaling_factor;  
+    snr60_final = snr60 * scaling_factor;
 else
     snr60_final = snr60;
 end
@@ -205,22 +205,30 @@ actual_SIR = 10*log10(mean(rms(target_at_mics).^2) / mean(rms(interf_at_mics_sca
 actual_SNR = 10*log10(mean(rms(clean_mix).^2) / mean(rms(noise).^2));
 fprintf('Target SIR (should be ~0 dB): %.2f dB\n', actual_SIR);
 fprintf('Target SNR (should be ~5 dB): %.2f dB\n', actual_SNR);
+
 % Beamform
 filtered_signal_GSC = GSC(mixture_signal, fs);
 audiowrite('GSC_filtered.wav', filtered_signal_GSC, fs);
 
+
+
+
 % play beamformed signal
-fprintf('Signal after GSC beamforming')
+fprintf('\nSignal after GSC beamforming')
 player2 = audioplayer(filtered_signal_GSC, fs);
 playblocking(player2);
 
 % Reduce WG noise with Wiener filter
 processed_signal = wiener(filtered_signal_GSC, fs);
 
+
+
+
 % play denoised signal
-fprintf('Playing final processed signal after Wiener decision-directed filter')
+fprintf('\nPlaying final processed signal after Wiener decision-directed filter')
 player3 = audioplayer(processed_signal, fs);
 playblocking(player3);
+
 % Save final result
 audiowrite('processed_signal.wav', processed_signal, fs);
 fprintf('final audio saved to processed_signal.wav\n');
@@ -228,36 +236,63 @@ fprintf('final audio saved to processed_signal.wav\n');
 % Run evaluation metrics
 evaluationMetrics(processed_signal, fs);
 
-fprintf('Try reducing the variable snr for the White Gaussian Noise SNR dB to see the improvements to the metrics')
+% play 40db SNR
+fprintf('\nPlaying mixture with 40dB SNR')
+player1 = audioplayer(snr40_final, fs);
+playblocking(player1);
+% output and visualization
+t = (0:N-1)/fs;
+
+% Beamform the one with 40dB SNR
+filtered_signal_40dB = GSC(snr40_final, fs);
+
+% play beamformed signal with 40 SNR
+fprintf('\n40 dB Signal after GSC beamforming')
+player2 = audioplayer(filtered_signal_40dB, fs);
+playblocking(player2);
+
+% Reduce WG noise of 40db SNR with Wiener filter
+processed_signal_40db = wiener(filtered_signal_40dB, fs);
+
+% play denoised signal from 40dB mix
+fprintf('\nPlaying final processed signal after Wiener decision-directed filter on 40dB SNR mix\n')
+player3 = audioplayer(processed_signal_40db, fs);
+playblocking(player3);
+
+fprintf('\nEvaluation metrics for the signal with 40db SNR\n')
+
+% Run evaluation metrics
+evaluationMetrics(processed_signal_40db, fs);
+
 % helper Function: anechoic propagation
 function mic_signals = simulate_propagation(src_sig, src_pos, mic_pos, fs, c)
-    
-    num_mics = size(mic_pos, 2);
-    N = length(src_sig);
-    mic_signals = zeros(N, num_mics);
-    
-    for m = 1:num_mics
-        % calculate Distance
-        dist = norm(src_pos - mic_pos(:,m));
-        
-        % calculate delay (samples)
-        delay_sec = dist / c;
-        delay_samples = delay_sec * fs;
-        
-        % calculate 1/r attenuation 
-        attenuation = 1 / dist;
-        
-        % apply fractional delay
-        
-        if exist('delayseq', 'file')
-            delayed_sig = delayseq(src_sig, delay_samples);
-        else
-            % fallback: integer delay
-            d_int = round(delay_samples);
-            delayed_sig = [zeros(d_int,1); src_sig(1:end-d_int)];
-        end
-        
-        % apply attenuation
-        mic_signals(:, m) = delayed_sig * attenuation;
+
+num_mics = size(mic_pos, 2);
+N = length(src_sig);
+mic_signals = zeros(N, num_mics);
+
+for m = 1:num_mics
+    % calculate Distance
+    dist = norm(src_pos - mic_pos(:,m));
+
+    % calculate delay (samples)
+    delay_sec = dist / c;
+    delay_samples = delay_sec * fs;
+
+    % calculate 1/r attenuation
+    attenuation = 1 / dist;
+
+    % apply fractional delay
+
+    if exist('delayseq', 'file')
+        delayed_sig = delayseq(src_sig, delay_samples);
+    else
+        % fallback: integer delay
+        d_int = round(delay_samples);
+        delayed_sig = [zeros(d_int,1); src_sig(1:end-d_int)];
     end
+
+    % apply attenuation
+    mic_signals(:, m) = delayed_sig * attenuation;
+end
 end
